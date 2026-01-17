@@ -1,0 +1,156 @@
+openapi: 3.0.3
+info:
+  title: Project Aura API
+  version: 0.1.0
+  description: API-first contract for BitGo Project Aura settlement engine.
+servers:
+  - url: https://aura.local
+paths:
+  /v1/fiat/deposit:
+    post:
+      summary: Initiate a fiat deposit and mint settlement workflow
+      operationId: createFiatDeposit
+      parameters:
+        - name: idempotency_key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiatDepositRequest'
+      responses:
+        '202':
+          description: Deposit accepted and queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiatDepositResponse'
+        '409':
+          description: Duplicate idempotency key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdempotencyConflict'
+  /v1/settlement/status/{id}:
+    get:
+      summary: Retrieve the settlement state for a transaction
+      operationId: getSettlementStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Current settlement status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettlementStatusResponse'
+        '404':
+          description: Transaction not found
+  /v1/admin/pause:
+    post:
+      summary: Pause all settlement processing for an integration
+      operationId: pauseIntegration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PauseRequest'
+      responses:
+        '200':
+          description: Pause applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PauseResponse'
+components:
+  schemas:
+    FiatDepositRequest:
+      type: object
+      required:
+        - client_id
+        - bank_integration
+        - amount
+        - currency
+        - destination_wallet
+      properties:
+        client_id:
+          type: string
+        bank_integration:
+          type: string
+          example: bank_a
+        amount:
+          type: integer
+          format: int64
+          description: Amount in minor units (cents)
+          example: 10000000
+        currency:
+          type: string
+          example: USD
+        destination_wallet:
+          type: string
+          example: 0xabc123
+    FiatDepositResponse:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          example: fiat_pending
+        created_at:
+          type: string
+          format: date-time
+    SettlementStatusResponse:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          example: compliance_cleared
+        status_reason:
+          type: string
+          example: awaiting_chain_confirmation
+        updated_at:
+          type: string
+          format: date-time
+    PauseRequest:
+      type: object
+      required:
+        - bank_integration
+        - reason
+      properties:
+        bank_integration:
+          type: string
+        reason:
+          type: string
+    PauseResponse:
+      type: object
+      properties:
+        bank_integration:
+          type: string
+        paused:
+          type: boolean
+        paused_at:
+          type: string
+          format: date-time
+    IdempotencyConflict:
+      type: object
+      properties:
+        message:
+          type: string
+        existing_response:
+          type: object
