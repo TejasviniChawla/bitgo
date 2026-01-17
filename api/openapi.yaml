@@ -17,7 +17,6 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Unique UUID for idempotent write protection.
       requestBody:
         required: true
         content:
@@ -37,12 +36,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IdempotencyConflict'
-        '503':
-          description: Bank integration temporarily halted by circuit breaker
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
   /v1/settlement/status/{id}:
     get:
       summary: Retrieve the settlement state for a transaction
@@ -161,17 +154,3 @@ components:
           type: string
         existing_response:
           type: object
-        idempotency_key:
-          type: string
-          format: uuid
-        request_hash:
-          type: string
-        status_code:
-          type: integer
-    ErrorResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        code:
-          type: string

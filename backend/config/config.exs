@@ -8,8 +8,7 @@ config :aura, Aura.Repo,
   pool_size: 10
 
 config :aura,
-  ecto_repos: [Aura.Repo],
-  idempotency_ttl_hours: 24
+  ecto_repos: [Aura.Repo]
 
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
