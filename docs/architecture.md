@@ -25,7 +25,6 @@
 
 ### Bottleneck Mitigation
 - Unique index on `key` prevents duplicates.
-- `request_hash` index supports fast validation for mismatched payloads.
 - `expires_at` index enables TTL cleanup by a background job.
 - Suggested TTL: 24 hours for financial operations, configurable per endpoint.
 
@@ -34,7 +33,6 @@
 2. Concatenate HTTP method + path + normalized body.
 3. SHA-256 hash the concatenated string.
 4. Store the hash alongside the idempotency key.
-5. Compare incoming hashes to detect replay attempts with mismatched payloads.
 
 ## Failure & Partition Considerations
 - Banking API timeouts: fail fast, record circuit breaker failure, and requeue transaction for later.
